@@ -1,15 +1,9 @@
 <?php if (!defined('BASEPATH')) exit('No direct script access allowed');
 
-class Categories extends Controller
-{
-	function __construct()
-	{
+class Categories extends Controller {
+	function __construct() {
 		parent::__construct();
-
-		$this->load->library('tank_auth');
-
 	}
-
 	
 	function index()
 	{
@@ -71,8 +65,6 @@ class Categories extends Controller
 
 	function delete()
 	{
-		$this->load->library('form_validation');
-
 		$category['id'] = $this->input->get('id');
 
 		$this->db->where('id', $category['id']);
