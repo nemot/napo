@@ -24,6 +24,7 @@ foreach ($products as $row) { ?>
 		<td><?=$row['teaser']?></td>
 		<td><?=$row['description']?></td>
 		<td>
+			<a href="<?=  base_url()?>admin/products/gallery?id=<?=$row['id']?>">Gallery</a>
 			<a href="<?=  base_url()?>admin/products/edit?id=<?=$row['id']?>">Edit</a>
 			<a href="<?=  base_url()?>admin/products/delete?id=<?=$row['id']?>">Delete</a>
 		</td>

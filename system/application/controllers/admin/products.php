@@ -60,6 +60,59 @@ class Products extends Controller {
 		$this->load->view('admin/layout', $data);
 	}
 
+	function edit() {
+		$this->load->library('form_validation');
+		$this->load->library('image_lib');
+
+		$this->image_lib->resize();
+
+		$this->form_validation->set_rules('name', 'product name', 'required|trim|strip_tags|max_length[255]');
+		$this->form_validation->set_rules('teaser', 'teaser', 'required|trim');
+		$this->form_validation->set_rules('description', 'description', 'required|trim');
+
+		$product['id'] = $this->input->get('id');
+		$product['name'] = $this->input->post('name');
+		$product['teaser'] = $this->input->post('teaser');
+		$product['description'] = $this->input->post('description');
+
+		if (isset($_FILES['image']['name']) and $_FILES['image']['name'] != '') {
+			$image['name'] = $_FILES['image']['name'];
+			$image['type'] = $_FILES['image']['type'];
+			$image['tmp_name'] = $_FILES['image']['tmp_name'];
+			$image['error'] = $_FILES['image']['error'];
+			$image['size'] = $_FILES['image']['size'];
+			$image['path'] =  $_SERVER['DOCUMENT_ROOT'].'/images/products';
+			$image['new_name'] =  strtolower(time().'_'.rand().'.'.end(explode(".", $image['name'])));
+
+		}
+
+		if ($this->form_validation->run() === true) {
+			$this->db->where('id', $product['id']);
+			if ($this->db->update('products', $product)) {
+				if (isset($image)) {
+					if ($this->create_thumb($image) and $this->save_image($image)) {
+						$this->db->where('product_id', $product['id']);
+						$this->db->where('preview', '1');
+						$this->db->update('images', array('product_id' => $product['id'], 'name' => $image['new_name'], 'preview' => '1'));
+					}
+					else {
+						$this->session->set_flashdata('notice', $this->image_lib->display_errors());
+					}
+				}
+				$this->session->set_flashdata('notice', 'Product was successfully modified');
+			}
+			else {
+				$this->session->set_flashdata('notice', "Couldn't modify product. Try again");
+			}
+			redirect(base_url().'admin/products/index', 'refresh');
+		}
+
+		$data['product'] = $this->product->getProduct($product['id']);
+
+		$data['content'] = 'admin/products/edit';
+		$this->load->view('admin/layout', $data);
+	}
+
 	function delete() {
 		$product['id'] = $this->input->get('id');
 		$this->remove_images($product['id']);
@@ -73,6 +126,15 @@ class Products extends Controller {
 		}
 		redirect(base_url().'admin/products/index', 'refresh');
 
+	}
+
+	function gallery(){
+		$product['id'] = $this->input->get('id');
+
+		$data['images'] = $this->product->getImages($product['id']);
+
+		$data['content'] = 'admin/products/gallery';
+		$this->load->view('admin/layout', $data);
 	}
 
 	private function remove_images($product_id) { 
